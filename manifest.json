@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Timestamp Keeper",
+  "version": "1.0",
+  "permissions": [
+    "identity",
+    "storage",
+    "scripting",
+    "tabs",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "host_permissions": [
+    "https://*.youtube.com/*",
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

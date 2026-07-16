@@ -1,41 +1,31 @@
-const TOGGLE_BUTTON_ELEMENT_ID = "toggle-button"
-const RUN_DESC_ELEMENT_ID = "run-desc"
+document.addEventListener('DOMContentLoaded',async () => {
+	// loading isOn from the storage, defualting to a false
+	let isOn = chrome.storage.local.get(["extensionEnabled"]) ?? false 
+	docment.getElementById("toggle-button").addEventListener("click", toggleApp(isOn))
+})
 
-document.addEventListener('DOMContentLoaded',async () => {})
-
-async function toggleApp(isOn) {
-
-	const toggleButton = document.getElementById(TOGGLE_BUTTON_ELEMENT_ID)
-	const runDesc = document.getElementById(RUN_DESC_ELEMENT_ID)
-
-	chrome.storage.local.set({ extensionEnabled: !isOn }).then( () => {})
-
-	if (!isOn) {
-		toggleButton.textContent = "Working!"
-		runDesc.textContent = "Saving timestamps!"
-		// start worker
-	}
-	
-	else {
-		toggleButton.textContent = "Sleeping"
-		runDesc.textContent = "Mimimimimimi"
-		// stop worker
-	}
-
-}
-
-// get every tab from the browser, and check if they are youtube, then do the procedure accordingly
-async function getAndProcessActiveTabs() {
-
-	const activeTabs = await chrome.tabs.query({ active: true });
-
-	activeTabs.forEach((tab) => {
-		checkTabForYT(tab)
-	})
-
-}
+// update UI of the app then start or stop the worker
 // NOTE: probably should optimize later due to the heavy weight of the act of looking at EVERY SINGLE TAB, probably can get away with
 //like just the last X numbers or only the ones that are alive or smtn like that
+async function toggleApp(isOn) {
+
+	chrome.storage.local.set({ extensionEnabled: !isOn }).then( () => {
+
+		if (!isOn) {
+			toggleButton.textContent = "Working!"
+			chrome.tabs.onUpdate.addEventListener((changeInfo,tab) => {
+				if (changeInfo.status === 'loading')
+				checkTabForYT(tab)
+			})
+		}
+		
+		else {
+			toggleButton.textContent = "Sleeping"
+			chrome.tabs.addEventListener(() => {})
+		}
+
+	})
+}
 
 // check if the passed tab is a youtube video, if it is get its timestamped link and replace it.
 function checkTabForYT(tab) {
@@ -48,7 +38,7 @@ function checkTabForYT(tab) {
 
 // replace the given tabs url with the given url
 async function replaceUrlWithTimestamp(tab, url) {
-
+	tab.searchParams.url = url
 }
 
 // get the passed in tabs youtube url with its current timestamp
